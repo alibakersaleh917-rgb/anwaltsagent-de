@@ -39,7 +39,7 @@ keyword  = random.choice(CONFIG["keywords"])
 def generate_with_fallback(prompt):
     for key in FLASH_KEYS:
         try:
-            client = genai.Client(api_key=key)
+           client = genai.Client(api_key=key, http_options={"api_version": "v1"})
             response = client.models.generate_content(
                 model="gemini-1.5-flash",
                 contents=prompt
