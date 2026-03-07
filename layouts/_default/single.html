@@ -1,0 +1,15 @@
+{{ define "main" }}
+
+<article class="mw8 center lh-copy">
+
+<h1>{{ .Title }}</h1>
+
+{{ if .Params.image }}
+<img src="{{ .Params.image }}" style="width:100%;border-radius:10px;margin:25px 0;">
+{{ end }}
+
+{{ .Content }}
+
+</article>
+
+{{ end }}
