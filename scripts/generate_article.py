@@ -77,8 +77,14 @@ def slugify(text: str) -> str:
 def extract_markdown_block(text: str) -> str:
     match = re.search(r"```(?:markdown|md)?\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
     if match:
-        return match.group(1).strip()
-    return text.strip()
+        text = match.group(1).strip()
+    else:
+        text = text.strip()
+
+    if "---" in text:
+        text = text[text.find("---"):].strip()
+
+    return text
 
 
 def has_valid_frontmatter(article: str) -> bool:
