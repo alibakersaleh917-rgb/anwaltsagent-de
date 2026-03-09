@@ -1,0 +1,57 @@
+domain: produktionsausfall.de
+brand_name: Produktionsausfall.de
+niche: Produktionsüberwachung & Industrie-Monitoring
+country: Deutschland
+language: de
+audience: Produktionsleiter, Instandhaltungsteams und industrielle SaaS-Entscheider
+brand_positioning: "B2B-Marke für industrielle Ausfallprävention, Monitoring und schnelle Reaktion auf Maschinenstillstand."
+
+homepage:
+  title: "Produktionsausfall.de — Monitoring für weniger Stillstand"
+  description: "Produktionsausfall.de steht für industrielle Sichtbarkeit bei produktionsausfall, maschinenstillstand und ausfallzeiten in der Fertigung."
+  eyebrow: "Industrial SaaS + Monitoring"
+  headline: "Weniger <strong>Produktionsausfall</strong>, mehr operative Stabilität"
+  subheadline: "Positionierung für B2B-Anbieter rund um produktionsüberwachung, störungsmanagement und datengetriebene Fertigungsprozesse."
+
+seo:
+  archive_title: "Artikel zu Produktionsausfall und Maschinenstillstand"
+  archive_description: "Praxisnahe B2B-Inhalte zu produktionsausfall, industrie störung, ausfallzeiten und produktionsüberwachung."
+  article_default_description: "Artikel auf Produktionsausfall.de"
+  keywords:
+    - "produktionsausfall"
+    - "maschinenstillstand"
+    - "industrie störung"
+    - "ausfallzeiten reduzieren"
+    - "produktionsüberwachung"
+
+cta:
+  sedo_url: "https://sedo.com/search/details/?domain=produktionsausfall.de"
+  nav_buy_label: "Domain kaufen"
+  hero_primary_label: "Sedo-Anfrage starten"
+  hero_secondary_label: "Fachbeiträge ansehen"
+  contact_heading: "Interesse an Produktionsausfall.de?"
+  contact_body: "Für B2B-Monitoring- und Industrial-SaaS-Projekte ist produktionsausfall.de eine starke, intent-klare Domain."
+  contact_buy_label: "Über Sedo kaufen"
+  contact_email_label: "E-Mail senden"
+  contact_email: "owner@example.com"
+  linkedin_label: "LinkedIn"
+  linkedin_url: "https://www.linkedin.com/in/example-owner"
+  single_article_text: "Wenn Sie ein B2B-Angebot für produktionsüberwachung und störungsprävention aufbauen, kann <strong>Produktionsausfall.de</strong> ein relevanter Markenkern sein."
+  single_article_sedo_label: "Domain über Sedo ansehen"
+
+analytics:
+  event_name: "domain_click"
+  event_category: "engagement"
+  ga_measurement_id: ""
+
+content:
+  article_tone: "analytisch, praxisnah und B2B-orientiert für industrielle Entscheider"
+  seo_keyword_hints: "produktionsausfall, maschinenstillstand, industrie störung, ausfallzeiten, produktionsüberwachung"
+  image_style_hints: "industrial monitoring dashboard; factory production line; machine maintenance; germany industry"
+  article_cta: "Wenn Sie eine B2B-Marke für Ausfallzeiten-Management und industrielle Monitoring-Lösungen aufbauen möchten, kann **produktionsausfall.de** ein starker Domain-Start sein."
+  topic_buckets: "informational|comparison|cost/pricing|checklist/how-to|mistakes to avoid|faq|niche-specific subtopics|location-based topics|trends / future of the niche|tools / software / platforms"
+  title_angle_patterns: "how-to|guide|checklist|comparison|mistakes|costs|best practices|trends|faq|decision framework"
+  recent_posts_memory_limit: 30
+  title_similarity_threshold: 0.75
+  intent_similarity_threshold: 0.70
+  slug_similarity_threshold: 0.70

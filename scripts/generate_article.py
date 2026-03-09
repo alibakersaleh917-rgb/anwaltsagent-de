@@ -48,14 +48,25 @@ KEYWORD = random.choice(CONFIG["keywords"])
 DEFAULT_BUCKET_ANGLE_MAP = {
     "informational": ["guide", "best practices"],
     "comparison": ["comparison", "decision framework"],
-    "cost/pricing": ["costs", "guide"],
+    "costs": ["costs", "guide"],
     "checklist/how-to": ["how-to", "checklist"],
-    "mistakes to avoid": ["mistakes", "best practices"],
-    "faq": ["faq", "guide"],
-    "niche-specific subtopics": ["guide", "how-to"],
-    "location-based topics": ["guide", "checklist"],
-    "trends / future of the niche": ["trends", "decision framework"],
-    "tools / software / platforms": ["comparison", "best practices"],
+    "mistakes": ["mistakes", "best practices"],
+    "FAQ": ["faq", "guide"],
+    "niche subtopics": ["guide", "how-to"],
+    "local topics": ["guide", "checklist"],
+    "trends": ["trends", "decision framework"],
+    "tools/platforms": ["comparison", "best practices"],
+}
+
+BUCKET_ALIASES = {
+    "cost/pricing": "costs",
+    "cost": "costs",
+    "mistakes to avoid": "mistakes",
+    "faq": "FAQ",
+    "niche-specific subtopics": "niche subtopics",
+    "location-based topics": "local topics",
+    "trends / future of the niche": "trends",
+    "tools / software / platforms": "tools/platforms",
 }
 
 
@@ -440,25 +451,65 @@ def detect_angle_from_title(title: str) -> str:
     return "guide"
 
 
+def normalize_bucket_name(raw: str) -> str:
+    if not raw:
+        return "informational"
+    cleaned = str(raw).strip()
+    return BUCKET_ALIASES.get(cleaned.lower(), cleaned)
+
+
+def configured_topic_buckets() -> list[str]:
+    configured = CONFIG.get("topic_buckets")
+    defaults = list(DEFAULT_BUCKET_ANGLE_MAP.keys())
+    if not configured:
+        return defaults
+
+    normalized = [normalize_bucket_name(item) for item in configured]
+    normalized = [item for item in normalized if item]
+    return normalized or defaults
+
+
+def parse_keywords_from_line(raw: str) -> list[str]:
+    if not raw:
+        return []
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        raw = raw[1:-1]
+    parts = [p.strip().strip('"\'') for p in raw.split(",")]
+    return [p for p in parts if p]
+
+
 def infer_bucket_from_title(title: str) -> str:
     t = (title or "").lower()
     if any(token in t for token in ["kosten", "preis", "pricing"]):
-        return "cost/pricing"
+        return "costs"
     if any(token in t for token in ["vergleich", "vs"]):
         return "comparison"
     if any(token in t for token in ["checklist", "checkliste", "wie", "how", "anleitung"]):
         return "checklist/how-to"
     if any(token in t for token in ["fehler", "vermeiden", "mistake"]):
-        return "mistakes to avoid"
+        return "mistakes"
     if any(token in t for token in ["faq", "häufige", "fragen"]):
-        return "faq"
+        return "FAQ"
     if any(token in t for token in ["trend", "zukunft", "future"]):
-        return "trends / future of the niche"
+        return "trends"
     if any(token in t for token in ["tool", "software", "plattform"]):
-        return "tools / software / platforms"
+        return "tools/platforms"
     if CONFIG.get("geo", "").lower() in t:
-        return "location-based topics"
+        return "local topics"
     return "informational"
+
+
+def infer_intent_fingerprint(title: str, bucket: str, angle: str) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9äöüÄÖÜß\s-]", " ", (title or "").lower())
+    tokens = [t for t in re.split(r"[\s-]+", cleaned) if len(t) > 3]
+    stop_words = {
+        "eine", "einer", "eines", "einen", "oder", "und", "fuer", "für", "with", "from",
+        "der", "die", "das", "den", "dem", "des", "wie", "so", "guide", "ratgeber", "tipps",
+        "deutschland", "online", "finden", "besten", "best", "checklist", "checkliste",
+    }
+    core = [tok for tok in tokens if tok not in stop_words][:5]
+    return "|".join([bucket, angle] + core)
 
 
 def read_recent_posts(limit: int | None = None) -> list[dict]:
@@ -483,19 +534,26 @@ def read_recent_posts(limit: int | None = None) -> list[dict]:
                 "slug": slug,
                 "bucket": bucket,
                 "angle": angle,
+                "intent": infer_intent_fingerprint(title, bucket, angle),
+                "keywords": parse_keywords_from_line(parsed.get("keywords_line", "")),
             }
         )
     return recent
 
 
 def pick_next_bucket_and_angle(recent_posts: list[dict]) -> tuple[str, str]:
-    buckets = CONFIG.get("topic_buckets") or list(DEFAULT_BUCKET_ANGLE_MAP.keys())
+    buckets = configured_topic_buckets()
     angles = CONFIG.get("title_angle_patterns") or ["guide", "how-to"]
 
     bucket_counts = {bucket: 0 for bucket in buckets}
     for post in recent_posts:
-        if post["bucket"] in bucket_counts:
-            bucket_counts[post["bucket"]] += 1
+        normalized_bucket = normalize_bucket_name(post["bucket"])
+        if normalized_bucket in bucket_counts:
+            bucket_counts[normalized_bucket] += 1
+
+    last_bucket = normalize_bucket_name(recent_posts[0]["bucket"]) if recent_posts else None
+    if last_bucket in bucket_counts and len(bucket_counts) > 1:
+        bucket_counts[last_bucket] += 2
 
     next_bucket = min(bucket_counts, key=lambda b: bucket_counts[b]) if bucket_counts else buckets[0]
 
@@ -508,22 +566,38 @@ def pick_next_bucket_and_angle(recent_posts: list[dict]) -> tuple[str, str]:
     return next_bucket, next_angle
 
 
-def is_too_similar_to_recent(title: str, slug: str, bucket: str, angle: str, recent_posts: list[dict]) -> tuple[bool, str]:
+def is_too_similar_to_recent(
+    title: str,
+    slug: str,
+    keyword: str,
+    bucket: str,
+    angle: str,
+    recent_posts: list[dict],
+) -> tuple[bool, str]:
     title_threshold = float(CONFIG.get("title_similarity_threshold") or 0.75)
     intent_threshold = float(CONFIG.get("intent_similarity_threshold") or 0.70)
     slug_threshold = float(CONFIG.get("slug_similarity_threshold") or 0.70)
+    intent = infer_intent_fingerprint(title, bucket, angle)
+    normalized_bucket = normalize_bucket_name(bucket)
 
     for post in recent_posts:
         title_ratio = text_similarity(title, post["title"])
         slug_ratio = text_similarity(slug, post["slug"])
-        same_intent = post["bucket"] == bucket and post["angle"] == angle
+        post_bucket = normalize_bucket_name(post["bucket"])
+        same_intent = post_bucket == normalized_bucket and post["angle"] == angle
+        intent_ratio = text_similarity(intent, post.get("intent", ""))
+        keyword_ratio = max([text_similarity(keyword, k) for k in post.get("keywords", [])] or [0.0])
 
         if title_ratio >= title_threshold:
             return True, f"title too similar to {post['path'].name} ({title_ratio:.2f})"
         if slug_ratio >= slug_threshold:
             return True, f"slug too similar to {post['path'].name} ({slug_ratio:.2f})"
+        if keyword_ratio >= intent_threshold and same_intent:
+            return True, f"keyword intent too similar to {post['path'].name} ({keyword_ratio:.2f})"
         if same_intent and max(title_ratio, slug_ratio) >= intent_threshold:
             return True, f"intent too similar to {post['path'].name}"
+        if intent_ratio >= intent_threshold:
+            return True, f"intent fingerprint too similar to {post['path'].name} ({intent_ratio:.2f})"
 
     return False, ""
 
@@ -545,7 +619,12 @@ def generate_prompt(keyword: str, bucket: str, angle: str, recent_posts: list[di
     brand_positioning = get_brand_positioning()
     seo_hints = CONFIG.get("seo_keyword_hints") or ""
 
-    recent_titles = "\n".join(f"- {post['title']}" for post in recent_posts[:12]) or "- Keine jüngeren Beiträge vorhanden"
+    recent_titles = "\n".join(
+        f"- {post['title']} [{normalize_bucket_name(post['bucket'])} | {post['angle']}]"
+        for post in recent_posts[:12]
+    ) or "- Keine jüngeren Beiträge vorhanden"
+    recent_buckets = ", ".join(normalize_bucket_name(post["bucket"]) for post in recent_posts[:10]) or "(keine)"
+    recent_angles = ", ".join(post["angle"] for post in recent_posts[:10]) or "(keine)"
 
     return f"""
 Du bist ein professioneller {language_style} SEO-Content-Writer mit Fokus auf hochwertige, natürlich klingende Fachartikel.
@@ -576,6 +655,8 @@ KONTEXT:
 - Ziel-Titelwinkel: {angle}
 - Kürzlich veröffentlichte Titel (nicht wiederholen):
 {recent_titles}
+- Kürzlich verwendete Buckets: {recent_buckets}
+- Kürzlich verwendete Titel-Winkel: {recent_angles}
 
 SEO-ZIEL:
 Der Artikel soll für Suchanfragen rund um das Hauptkeyword ranken und gleichzeitig zur Nische, Zielgruppe und Markenpositionierung passen.
@@ -593,6 +674,7 @@ ANFORDERUNGEN:
 - Vermeide Wiederholungen.
 - Wähle eine klar unterscheidbare Suchintention im Cluster "{bucket}".
 - Der Titel muss den Winkel "{angle}" deutlich widerspiegeln.
+- Wähle einen frischen Unteraspekt und vermeide identische Nutzenversprechen zu jüngsten Artikeln.
 - Gib konkrete, praktische Informationen statt leerer Allgemeinplätze.
 - Der Artikel darf nicht mit Meta-Kommentaren beginnen.
 - Schreibe keinen Satz wie "Hier ist der Artikel" oder ähnliche Hinweise.
@@ -716,7 +798,14 @@ def main():
 
             title_angle = detect_angle_from_title(title)
             title_bucket = infer_bucket_from_title(title)
-            too_similar, reason = is_too_similar_to_recent(title, slug, title_bucket, title_angle, recent_posts)
+            too_similar, reason = is_too_similar_to_recent(
+                title,
+                slug,
+                selected_keyword,
+                title_bucket,
+                title_angle,
+                recent_posts,
+            )
             if too_similar:
                 raise ValueError(f"Rejected due to duplicate-intent guard: {reason}")
 

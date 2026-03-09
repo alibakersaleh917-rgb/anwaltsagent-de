@@ -1,0 +1,47 @@
+name: organic-template
+visual_mood: "natural-light"
+
+typography:
+  font_family: "Inter, ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif"
+  article_font_family: "Inter, ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif"
+
+palette:
+  bg: "#f7fbf5"
+  bg_soft: "#eff6ea"
+  card: "rgba(255, 255, 255, 0.84)"
+  card_strong: "rgba(255, 255, 255, 0.95)"
+  text: "#19311f"
+  text_muted: "#557067"
+  line: "rgba(94, 128, 112, 0.25)"
+  brand_1: "#3f9c5a"
+  brand_2: "#8cbc3f"
+  accent: "#f59e0b"
+  success: "#2f855a"
+
+background:
+  body_gradient_1: "radial-gradient(1200px 700px at 10% -20%, rgba(63,156,90,0.22), transparent 60%)"
+  body_gradient_2: "radial-gradient(900px 520px at 95% 0%, rgba(140,188,63,0.16), transparent 64%)"
+  header_gradient: "linear-gradient(180deg, rgba(247,251,245,0.95), rgba(247,251,245,0.8))"
+  hero_card_gradient: "linear-gradient(155deg, rgba(63,156,90,0.17), rgba(140,188,63,0.14))"
+  eyebrow_bg: "rgba(63,156,90,0.14)"
+  cta_gradient: "linear-gradient(140deg, rgba(63,156,90,0.18), rgba(245,158,11,0.14))"
+  pill_gradient: "linear-gradient(135deg, var(--brand), var(--brand-2))"
+  brand_text_gradient: "linear-gradient(90deg, var(--brand), var(--brand-2))"
+
+borders:
+  card_border: "1px solid rgba(122, 157, 139, 0.28)"
+  pill_border: "1px solid rgba(28,56,37,0.2)"
+  section_border: "1px solid var(--line)"
+
+effects:
+  shadow: "0 20px 50px rgba(34, 64, 41, 0.14)"
+  glow: "radial-gradient(circle, rgba(140,188,63,0.22), transparent 72%)"
+  pill_shadow: "0 8px 24px rgba(63,156,90,0.2)"
+
+card_style:
+  radius: "18px"
+  hero_radius: "24px"
+
+button_style:
+  pill_radius: "999px"
+  ghost_bg: "rgba(25,49,31,0.03)"
