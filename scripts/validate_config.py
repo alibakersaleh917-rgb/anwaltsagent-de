@@ -15,6 +15,19 @@ def require_keys(obj: dict, keys: list[str], prefix: str):
             fail(f"Missing required key: {prefix}{k}")
 
 
+def validate_domain_file(path: Path):
+    domain = parse_simple_yaml(path)
+    require_keys(domain, ["domain", "brand_name", "niche", "country", "language", "audience"], f"{path}:domain.")
+    require_keys(domain, ["homepage", "seo", "cta", "analytics", "content"], f"{path}:domain.")
+    require_keys(domain.get("analytics", {}), ["event_name", "event_category"], f"{path}:domain.analytics.")
+    require_keys(domain.get("content", {}), ["article_tone", "image_style_hints", "article_cta"], f"{path}:domain.content.")
+
+
+def validate_theme_file(path: Path):
+    theme = parse_simple_yaml(path)
+    require_keys(theme, ["palette", "background", "effects", "button_style", "card_style"], f"{path}:theme.")
+
+
 def main():
     domain_path = Path("data/domain.yaml")
     theme_path = Path("data/theme.yaml")
@@ -24,15 +37,13 @@ def main():
     if not theme_path.exists():
         fail("data/theme.yaml not found")
 
-    domain = parse_simple_yaml(domain_path)
-    theme = parse_simple_yaml(theme_path)
+    validate_domain_file(domain_path)
+    validate_theme_file(theme_path)
 
-    require_keys(domain, ["domain", "brand_name", "niche", "country", "language", "audience"], "domain.")
-    require_keys(domain, ["homepage", "seo", "cta", "analytics", "content"], "domain.")
-    require_keys(domain.get("analytics", {}), ["ga_measurement_id", "event_name", "event_category"], "domain.analytics.")
-    require_keys(domain.get("content", {}), ["article_tone", "image_style_hints", "article_cta"], "domain.content.")
-
-    require_keys(theme, ["palette", "background", "effects", "button_style", "card_style"], "theme.")
+    for example in sorted(Path("data/examples").glob("domain*.yaml")):
+        validate_domain_file(example)
+    for example in sorted(Path("data/examples").glob("theme*.yaml")):
+        validate_theme_file(example)
 
     print("Config validation passed")
 

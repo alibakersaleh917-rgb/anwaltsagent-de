@@ -1,0 +1,56 @@
+domain: example.com
+brand_name: Example
+niche: Digitale Dienstleistungen
+country: Deutschland
+language: de
+audience: Unternehmen und Privatpersonen
+brand_positioning: "Example positioniert sich als klare, moderne Marke in einer transaktionalen Nische."
+
+homepage:
+  title: "Example — Domain Factory Template"
+  description: "Template-Domain für den schnellen Launch SEO-fokussierter Markenprojekte."
+  eyebrow: "Template + SEO + Conversion"
+  headline: "Die <strong>Template-Domain</strong> für den nächsten Launch"
+  subheadline: "Starten Sie in Minuten mit wiederverwendbaren Layouts, konfigurierbarer Theme-Engine und automatisierter Artikel-Pipeline."
+
+seo:
+  archive_title: "Alle Artikel"
+  archive_description: "Alle Beiträge auf Example."
+  article_default_description: "Artikel auf Example"
+  keywords:
+    - "digitale dienstleistungen"
+    - "anbieter vergleichen"
+    - "kosten und preise"
+    - "so finden sie den richtigen anbieter"
+
+cta:
+  sedo_url: "https://sedo.com/search/details/?domain=example.com"
+  nav_buy_label: "Domain kaufen"
+  hero_primary_label: "Jetzt über Sedo anfragen"
+  hero_secondary_label: "Beiträge ansehen"
+  contact_heading: "Interesse an Example?"
+  contact_body: "Wenn Sie in dieser Nische eine starke Marke aufbauen möchten, ist Example ein klarer Startpunkt."
+  contact_buy_label: "Über Sedo kaufen"
+  contact_email_label: "E-Mail senden"
+  contact_email: "owner@example.com"
+  linkedin_label: "LinkedIn"
+  linkedin_url: "https://www.linkedin.com/in/example-owner"
+  single_article_text: "Wenn Sie eine Nischenmarke aufbauen möchten, kann <strong>Example</strong> ein prägnanter Domain-Startpunkt sein."
+  single_article_sedo_label: "Domain über Sedo ansehen"
+
+analytics:
+  event_name: "domain_click"
+  event_category: "engagement"
+  ga_measurement_id: ""
+
+content:
+  article_tone: "klar, professionell und praxisnah"
+  seo_keyword_hints: "vergleich, kosten, auswahl, tipps"
+  image_style_hints: "professional; modern; niche-related"
+  article_cta: "Wenn Sie eine starke Nischenmarke aufbauen möchten, kann **example.com** eine interessante Domain-Basis sein."
+  topic_buckets: "informational|comparison|cost/pricing|checklist/how-to|mistakes to avoid|faq|niche-specific subtopics|location-based topics|trends / future of the niche|tools / software / platforms"
+  title_angle_patterns: "how-to|guide|checklist|comparison|mistakes|costs|best practices|trends|faq|decision framework"
+  recent_posts_memory_limit: 30
+  title_similarity_threshold: 0.75
+  intent_similarity_threshold: 0.70
+  slug_similarity_threshold: 0.70
