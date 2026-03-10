@@ -42,6 +42,10 @@ handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
 logger.addHandler(handler)
 
 
+def log_stage_duration(stage: str, started_at: float) -> None:
+    logger.info("stage=%s duration_s=%.2f", stage, time.perf_counter() - started_at)
+
+
 def slugify(text: str) -> str:
     text = text.lower().strip()
     for src, dst in {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}.items():
@@ -224,12 +228,22 @@ def generate_one(keyword: str, force_pillar: bool, needs_review: bool, dry_run: 
         f"Domain: {CONFIG.get('domain', '')}\n"
         f"Please ensure roughly {length_hint}."
     )
+    stage_start = time.perf_counter()
     stage1 = call_with_retry(OPENROUTER_URL, OPENROUTER_API_KEY, STAGE_1_MODEL, build_stage1_system_prompt(), stage1_user)
-    stage2 = call_with_retry(GROQ_URL, GROQ_API_KEY, STAGE_2_MODEL, build_stage2_system_prompt(), stage1)
-    stage3 = call_with_retry(GROQ_URL, GROQ_API_KEY, STAGE_3_MODEL, build_stage3_system_prompt(), stage2)
+    log_stage_duration("stage1_write", stage_start)
 
+    stage_start = time.perf_counter()
+    stage2 = call_with_retry(GROQ_URL, GROQ_API_KEY, STAGE_2_MODEL, build_stage2_system_prompt(), stage1)
+    log_stage_duration("stage2_seo_review", stage_start)
+
+    stage_start = time.perf_counter()
+    stage3 = call_with_retry(GROQ_URL, GROQ_API_KEY, STAGE_3_MODEL, build_stage3_system_prompt(), stage2)
+    log_stage_duration("stage3_language_polish", stage_start)
+
+    stage_start = time.perf_counter()
     body = clean_markdown(stage3)
     body = resolve_internal_links(body, min_links=3, max_links=5)
+    log_stage_duration("stage4_internal_links", stage_start)
 
     title = extract_title(body, keyword)
     slug = slugify(title) or f"artikel-{random.randint(1000, 9999)}"
@@ -253,8 +267,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--keyword", default=None)
     parser.add_argument("--batch-mode", action="store_true", help="Use humanized daily publish counts")
     parser.add_argument("--count", type=int, default=None, help="Force number of generated articles")
+    parser.add_argument("--allow-delay", action="store_true", help="Enable randomized publish delay (opt-in)")
     return parser.parse_args()
 
+    if args.count is not None:
+        target_count = max(0, min(3, args.count))
+    elif args.batch_mode:
+        target_count = choose_publish_count(now)
+    else:
+        target_count = 1
 
 def main() -> None:
     args = parse_args()
@@ -270,9 +291,11 @@ def main() -> None:
     else:
         target_count = 1
 
-    logger.info("Run started target_count=%s batch_mode=%s", target_count, args.batch_mode)
+    run_started = time.perf_counter()
+    logger.info("Run started target_count=%s batch_mode=%s allow_delay=%s", target_count, args.batch_mode, args.allow_delay)
     if target_count == 0:
         logger.info("No publication today (humanized schedule)")
+        log_stage_duration("run_total", run_started)
         return
 
     total, _pillar_count, review_count = article_stats()
@@ -286,20 +309,27 @@ def main() -> None:
         needs_review = (projected_review / projected_total) <= 0.2 and random.random() < 0.5
 
         keyword = select_keyword(args.keyword, tracker)
-        delay = random.randint(0, 14400)
-        logger.info("Sleeping before publish delay_seconds=%s", delay)
-        time.sleep(delay)
+        if args.allow_delay:
+            delay = random.randint(0, 14400)
+            logger.info("Sleeping before publish delay_seconds=%s", delay)
+            time.sleep(delay)
 
+        item_started = time.perf_counter()
         path = generate_one(keyword, force_pillar=force_pillar, needs_review=needs_review, dry_run=args.dry_run)
+        log_stage_duration("article_iteration", item_started)
         if path and not args.keyword:
             tracker.mark_as_used(keyword)
         logger.info("Article completed path=%s pillar=%s needs_review=%s", path, force_pillar, needs_review)
 
     if not args.dry_run:
+        ping_started = time.perf_counter()
         logger.info("Pinging sitemap after generation")
         ping_search_engines()
+        log_stage_duration("sitemap_ping", ping_started)
         stats = tracker.get_stats()
         logger.info("Keyword stats queue_remaining=%s total_used=%s", stats["queue_remaining"], stats["total_used"])
+
+    log_stage_duration("run_total", run_started)
 
 
 if __name__ == "__main__":
