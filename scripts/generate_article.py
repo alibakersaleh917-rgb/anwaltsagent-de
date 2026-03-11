@@ -59,6 +59,18 @@ def validate_api_key(key_name: str, key_value: str) -> str:
         raise RuntimeError(f"{key_name} should not contain quotes")
     return key
 
+def validate_api_key(key_name: str, key_value: str) -> str:
+    key = (key_value or "").strip()
+    if not key:
+        raise RuntimeError(f"{key_name} is missing or empty")
+    if key.startswith("Bearer "):
+        raise RuntimeError(f"{key_name} should NOT include the 'Bearer ' prefix")
+    if "\n" in key or "\r" in key:
+        raise RuntimeError(f"{key_name} contains newline characters")
+    if '"' in key or "'" in key:
+        raise RuntimeError(f"{key_name} should not contain quotes")
+    return key
+
 def slugify(text: str) -> str:
     text = text.lower().strip()
     for src, dst in {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}.items():
@@ -304,6 +316,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-delay", action="store_true", help="Enable randomized publish delay (opt-in)")
     return parser.parse_args()
 
+    if args.count is not None:
+        target_count = max(0, min(3, args.count))
+    elif args.batch_mode:
+        target_count = choose_publish_count(now)
+    else:
+        target_count = 1
 
 def main() -> None:
     args = parse_args()
