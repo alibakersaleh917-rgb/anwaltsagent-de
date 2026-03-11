@@ -1,0 +1,12 @@
+2026-03-11 00:10:34,746 INFO Run started target_count=1 batch_mode=False allow_delay=False
+2026-03-11 00:10:56,546 INFO stage=stage1_write duration_s=21.80
+2026-03-11 00:10:59,070 INFO stage=stage2_seo_review duration_s=2.52
+2026-03-11 00:11:01,040 INFO stage=stage3_language_polish duration_s=1.97
+2026-03-11 00:11:01,041 INFO stage=stage4_internal_links duration_s=0.00
+2026-03-11 00:11:01,041 INFO Saved article content/posts/2026-03-11-den-richtigen-rechtsanwalt-online-finden-der-ultimative-leitfaden-2024.md
+2026-03-11 00:11:01,041 INFO stage=article_iteration duration_s=26.29
+2026-03-11 00:11:01,042 INFO Article completed path=content/posts/2026-03-11-den-richtigen-rechtsanwalt-online-finden-der-ultimative-leitfaden-2024.md pillar=False needs_review=False
+2026-03-11 00:11:01,042 INFO Pinging sitemap after generation
+2026-03-11 00:11:01,322 INFO stage=sitemap_ping duration_s=0.28
+2026-03-11 00:11:01,322 INFO Keyword stats queue_remaining=99 total_used=1
+2026-03-11 00:11:01,322 INFO stage=run_total duration_s=26.58
