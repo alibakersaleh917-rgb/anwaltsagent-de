@@ -83,36 +83,47 @@ def internal_link_count(body: str) -> int:
 def call_groq(article_body: str) -> str:
     clean_key = validate_api_key("GROQ_API_KEY", GROQ_API_KEY)
 
-    payload = {
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": FAQ_PROMPT},
-            {"role": "user", "content": article_body},
-        ],
-        "temperature": 0.4,
-    }
-
     import requests
 
-    for attempt in range(1, 4):
-        try:
-            resp = requests.post(
-                GROQ_URL,
-                headers={"Authorization": f"Bearer {clean_key}", "Content-Type": "application/json"},
-                json=payload,
-                timeout=240,
-            )
-            if resp.status_code == 401:
-                raise RuntimeError("Groq authentication failed. Check GROQ_API_KEY secret.")
-            if resp.status_code >= 400:
-                raise RuntimeError(f"Groq API error {resp.status_code}: {resp.text[:400]}")
-            content = resp.json()["choices"][0]["message"]["content"].strip()
-            return re.sub(r"```(?:markdown|md)?|```", "", content, flags=re.IGNORECASE).strip()
-        except Exception as exc:
-            log(f"Groq attempt={attempt} failed err={exc}")
-            if attempt == 3:
-                raise
-    raise RuntimeError("unreachable")
+    model_candidates = [MODEL]
+    if MODEL != FALLBACK_MODEL:
+        model_candidates.append(FALLBACK_MODEL)
+
+    for candidate_model in model_candidates:
+        payload = {
+            "model": candidate_model,
+            "messages": [
+                {"role": "system", "content": FAQ_PROMPT},
+                {"role": "user", "content": article_body},
+            ],
+            "temperature": 0.4,
+        }
+
+        for attempt in range(1, 4):
+            try:
+                resp = requests.post(
+                    GROQ_URL,
+                    headers={"Authorization": f"Bearer {clean_key}", "Content-Type": "application/json"},
+                    json=payload,
+                    timeout=240,
+                )
+                if resp.status_code == 401:
+                    raise RuntimeError("Groq authentication failed. Check GROQ_API_KEY secret.")
+                if resp.status_code == 400 and "model_decommissioned" in (resp.text or ""):
+                    if candidate_model != FALLBACK_MODEL:
+                        log(f"Groq model {candidate_model} is decommissioned; retrying with fallback {FALLBACK_MODEL}")
+                        break
+                    raise RuntimeError("Groq model decommissioned and fallback model unavailable. Update configured model.")
+                if resp.status_code >= 400:
+                    raise RuntimeError(f"Groq API error {resp.status_code}: {resp.text[:400]}")
+                content = resp.json()["choices"][0]["message"]["content"].strip()
+                return re.sub(r"```(?:markdown|md)?|```", "", content, flags=re.IGNORECASE).strip()
+            except Exception as exc:
+                log(f"Groq attempt={attempt} model={candidate_model} failed err={exc}")
+                if attempt == 3:
+                    raise
+
+    raise RuntimeError("All Groq model candidates failed")
 
 
 def build_weekly_report(rows: list[tuple[str, int, str]]) -> None:
