@@ -41,3 +41,6 @@
 2026-03-11 04:53:08,750 INFO stage=sitemap_ping duration_s=0.26
 2026-03-11 04:53:08,750 INFO Keyword stats queue_remaining=96 total_used=4
 2026-03-11 04:53:08,750 INFO stage=run_total duration_s=51.77
+2026-03-14 04:52:12,203 INFO Run started target_count=0 batch_mode=True allow_delay=False
+2026-03-14 04:52:12,203 INFO No publication today (humanized schedule)
+2026-03-14 04:52:12,203 INFO stage=run_total duration_s=0.00
