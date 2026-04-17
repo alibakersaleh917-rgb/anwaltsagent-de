@@ -77,3 +77,6 @@
 2026-04-15 05:31:36,663 INFO Run started target_count=0 batch_mode=True allow_delay=False
 2026-04-15 05:31:36,663 INFO No publication today (humanized schedule)
 2026-04-15 05:31:36,663 INFO stage=run_total duration_s=0.00
+2026-04-17 05:35:27,499 INFO Run started target_count=0 batch_mode=True allow_delay=False
+2026-04-17 05:35:27,499 INFO No publication today (humanized schedule)
+2026-04-17 05:35:27,500 INFO stage=run_total duration_s=0.00
